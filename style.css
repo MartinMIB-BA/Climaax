@@ -1,0 +1,34 @@
+body {
+    margin: 0;
+    padding: 0;
+  }
+  .row {
+    display: flex;
+  }
+  .cols { 
+    flex: 50%; 
+    height: 100vh; 
+    position: relative; /* potrebné pre ovládacie prvky Leaflet */
+  }
+  #map1 { 
+    border-right: 5px solid red; 
+  }
+  
+  /* Základný štýl pre legendu */
+  .legend {
+    background: white;
+    padding: 10px;
+    line-height: 18px;
+    color: #555;
+    font-size: 12px;
+    border: 1px solid #ccc;
+  }
+  
+  /* Štýl pre farebné bloky v legende */
+  .legend span {
+    display: inline-block;
+    width: 30px;
+    height: 20px;
+    margin-right: 10px;
+  }
+  
