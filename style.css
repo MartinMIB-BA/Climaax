@@ -1,34 +1,88 @@
-body {
-    margin: 0;
-    padding: 0;
-  }
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.cols {
+  flex: 1;
+  height: 100%;
+}
+
+.legend {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  line-height: 18px;
+  color: #333;
+  font-size: 12px;
+  border: 1px solid #999;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 9999 !important;
+  position: relative;
+}
+
+.legend span {
+  display: inline-block;
+  width: 30px;
+  height: 15px;
+  margin-right: 10px;
+  border: 1px solid #000;
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  background-color: red;
+  z-index: 9999;
+}
+
+@media (max-width: 768px) {
   .row {
-    display: flex;
+    flex-direction: column;
   }
-  .cols { 
-    flex: 50%; 
-    height: 100vh; 
-    position: relative; /* potrebné pre ovládacie prvky Leaflet */
+
+  .cols {
+    height: 50%;
   }
-  #map1 { 
-    border-right: 5px solid red; 
-  }
-  
-  /* Základný štýl pre legendu */
+
   .legend {
-    background: white;
-    padding: 10px;
-    line-height: 18px;
-    color: #555;
-    font-size: 12px;
-    border: 1px solid #ccc;
+    padding: 5px;
+    font-size: 10px;
+    max-width: 80%;
+    margin: 2px auto;
+    line-height: 1;
+    display: inline-block; /* Aby sa prispôsobila obsahu */
+    border-radius: 5px; /* Jemnejšie zaoblenie */
   }
-  
-  /* Štýl pre farebné bloky v legende */
+
+  .legend p {
+    margin: 2px 0; /* Minimalizujeme vertikálne medzery medzi riadkami */
+    padding: 0; /* Odstránime zbytočné vnútorné odsadenie */
+  }
+
   .legend span {
-    display: inline-block;
-    width: 30px;
-    height: 20px;
-    margin-right: 10px;
+    width: 20px;
+    height: 12px;
   }
-  
+
+  .divider {
+    top: 50%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 3px;
+    transform: translateY(-50%);
+  }
+}
