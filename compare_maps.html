@@ -11,6 +11,7 @@
   </head>
   <body>
     <div class="row">
+      <div class="divider"></div>
       <div class="cols" id="map1"></div>
       <div class="cols" id="map2"></div>
     </div>
@@ -69,7 +70,7 @@
       var baseLayers2 = createBaseLayers(baseTileUrls);
 
       // Pridanie predvolených základných vrstiev
-      baseLayers1["OSM"].addTo(map1);
+      baseLayers1["Google Hybrid"].addTo(map1);
       baseLayers2["Google Hybrid"].addTo(map2);
 
       // Ekonomické vrstvy (obrazové overlay)
