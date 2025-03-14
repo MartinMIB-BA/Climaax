@@ -1,43 +1,55 @@
+/* Globálne nastavenia */
 body, html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   font-family: Arial, sans-serif;
+  overflow: hidden; /* Zabráni posunutiu kvôli pretečeniu obsahu */
 }
 
+/* Hlavný kontajner pre mapy */
 .row {
   display: flex;
   width: 100%;
-  height: 100dvh;
+  height: 100dvh; /* Dynamická výška viewportu */
 }
 
+/* Každá mapa */
 .cols {
   flex: 1;
   height: 100%;
 }
 
+/* Legenda – globálne nastavenia */
 .legend {
   background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  line-height: 18px;
+  padding: 6px 8px; /* Menšie paddingy */
+  line-height: 1.2; /* Menší odstup medzi riadkami */
   color: #333;
   font-size: 12px;
   border: 1px solid #999;
   border-radius: 5px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
   z-index: 9999 !important;
-  position: relative;
+  position: absolute;
+  bottom: 10px; /* Aby bola legenda stále viditeľná */
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content; /* Len taká široká, ako je potrebné */
+  max-width: 80%; /* Aby nebola zbytočne široká */
 }
 
+/* Malé farebné štvorčeky v legende */
 .legend span {
   display: inline-block;
-  width: 30px;
-  height: 15px;
-  margin-right: 10px;
+  width: 20px;
+  height: 12px;
+  margin-right: 5px; /* Menší rozostup medzi ikonami */
   border: 1px solid #000;
 }
 
+/* Stredová čiara medzi mapami */
 .divider {
   position: absolute;
   top: 0;
@@ -48,6 +60,7 @@ body, html {
   z-index: 9999;
 }
 
+/* 📱 Mobilné úpravy */
 @media (max-width: 768px) {
   .row {
     flex-direction: column;
@@ -57,32 +70,34 @@ body, html {
     height: 50%;
   }
 
+  /* Kompaktná legenda pre mobilné zariadenia */
   .legend {
-    padding: 5px;
+    padding: 3px 5px;
     font-size: 10px;
-    max-width: 80%;
+    max-width: 90%;
     margin: 2px auto;
-    line-height: 1;
-    display: inline-block; /* Aby sa prispôsobila obsahu */
-    border-radius: 5px; /* Jemnejšie zaoblenie */
+    line-height: 1.1;
+    display: block; /* Zabezpečí správne zobrazenie */
+    border-radius: 5px;
+    bottom: 5px; /* Mierne posunutie hore, aby bola vždy viditeľná */
   }
 
   .legend p {
-    margin: 2px 0; /* Minimalizujeme vertikálne medzery medzi riadkami */
-    padding: 0; /* Odstránime zbytočné vnútorné odsadenie */
+    margin: 2px 0; /* Minimalizované vertikálne medzery medzi riadkami */
+    padding: 0;
   }
 
   .legend span {
-    width: 20px;
-    height: 12px;
+    width: 18px;
+    height: 10px;
   }
 
+  /* Presná oprava pre stredovú čiaru na mobile */
   .divider {
-    top: calc(50% - 1.5px);
+    top: 50%;
     left: 0;
-    right: 0;
     width: 100%;
     height: 3px;
-    transform: translateY(-50%);
+    transform: none;
   }
 }
