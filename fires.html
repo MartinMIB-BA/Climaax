@@ -125,6 +125,12 @@
     L.control.groupedLayers(baseLayers1, groupedOverlaysHistorical).addTo(map1);
     L.control.groupedLayers(baseLayers2, groupedOverlaysRCP45).addTo(map2);
 
+    // Zakázanie klikacej propagácie pre overlay control (aby sa zabránilo duplicitným udalostiam na mobiloch)
+    var layersControl1 = document.querySelector('.leaflet-control-layers');
+    if(layersControl1) {
+      L.DomEvent.disableClickPropagation(layersControl1);
+    }
+
     // --- Definícia overlay premenných ---
     // Hazard vrstvy - CHELSA a ECLIPS
     var historicalHazardOverlay_CHELSA = Object.values(groupedOverlaysHistorical["HAZARD 1991 - 2010"])[0];
