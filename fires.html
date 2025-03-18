@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+  <title>Map Compare Side by Side with Legends and Sync</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@latest/dist/leaflet.groupedlayercontrol.min.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-groupedlayercontrol@latest/dist/leaflet.groupedlayercontrol.min.js"></script>
+  <script src="https://rawgit.com/jieter/Leaflet.Sync/master/L.Map.Sync.js"></script>
+</head>
+<body>
+  <div class="row">
+    <div class="divider"></div>
+    <div class="cols" id="map1"></div>
+    <div class="cols" id="map2"></div>
+  </div>
+
+  <script>
+    // --- Základné funkcie ---
+    function createBaseLayers(tileUrls) {
+      return {
+        "OSM": L.tileLayer(tileUrls.osm.url, tileUrls.osm.options),
+        "Google Hybrid": L.tileLayer(tileUrls.googleHybrid.url, tileUrls.googleHybrid.options)
+      };
+    }
+
+    function createOverlay(imagePath) {
+      return L.imageOverlay(imagePath, [[49.0441, 20.5594], [47.9419, 18.4041]], { opacity: 0.7 });
+    }
+
+    function createLegendControl(title, data, position) {
+      var legend = L.control({ position: position });
+      legend.onAdd = function () {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML = "<strong>" + title + "</strong><br>" +
+          data.map(function(item) {
+            return '<div style="display:flex; align-items:center;">' +
+                   '<span style="background:' + item.color + '; width:20px; height:10px; margin-right:5px; border:1px solid black;"></span>' +
+                   item.label +
+                   '</div>';
+          }).join('');
+        return div;
+      };
+      return legend;
+    }
+
+    // --- Inicializácia máp ---
+    var centerCoords = [48.5, 19.5], zoomLevel = 9;
+    var map1 = L.map('map1', { zoomControl: false }).setView(centerCoords, zoomLevel);
+    var map2 = L.map('map2', { zoomControl: false }).setView(centerCoords, zoomLevel);
+    map1.sync(map2);
+    map2.sync(map1);
+
+    var baseTileUrls = {
+      osm: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: { attribution: '© OpenStreetMap' }
+      },
+      googleHybrid: {
+        url: 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+        options: { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'], attribution: 'Google Hybrid' }
+      }
+    };
+
+    var baseLayers1 = createBaseLayers(baseTileUrls);
+    var baseLayers2 = createBaseLayers(baseTileUrls);
+    baseLayers1["Google Hybrid"].addTo(map1);
+    baseLayers2["Google Hybrid"].addTo(map2);
+
+    // --- Definícia overlay vrstiev ---
+    var riskLayers = {
+      "HAZARD 1991 - 2010": {
+        "CHELSA": "data/hazard_HIST_19912010CHELSA.png",
+        "ECLIPS": "data/hazard_HIST_199110ECLIPS.png"
+      },
+      "HAZARD RCP 4.5 2021 - 2040": {
+        "CHELSA": "data/hazard_rcp45_CSCREMO2009_20212040CHELSA.png",
+        "ECLIPS": "data/hazard_RCP45_CLMcom_CCLM_202140ECLIPS.png"
+      },
+      "RISK 1991 - 2010 CHELSA": {
+        "Economical": "data/risk1_economical_HIST_19912010.png",
+        "Ecological": "data/risk1_ecological_HIST_19912010.png",
+        "Population": "data/risk1_population_HIST_19912010.png",
+        "Roads": "data/risk2_roads_HIST_19912010.png"
+      },
+      "RISK 2021 - 2040 RCP 4.5 CHELSA": {
+        "Economical": "data/risk1_economical_rcp45_CSCREMO2009_20212040.png",
+        "Ecological": "data/risk1_ecological_rcp45_CSCREMO2009_20212040.png",
+        "Population": "data/risk1_population_rcp45_CSCREMO2009_20212040.png",
+        "Roads": "data/risk2_roads_rcp45_CSCREMO2009_20212040.png"
+      },
+      "RISK 1991 - 2010 ECLIPS": {
+        "Economical": "data/risk1_economical_HIST_199110.png",
+        "Ecological": "data/risk1_ecological_HIST_199110.png",
+        "Population": "data/risk1_population_HIST_199110.png",
+        "Roads": "data/risk2_roads_HIST_199110.png"
+      },
+      "RISK 2021 - 2040 RCP 4.5 ECLIPS": {
+        "Economical": "data/risk1_economical_RCP45_CLMcom_CCLM_202140.png",
+        "Ecological": "data/risk1_ecological_RCP45_CLMcom_CCLM_202140.png",
+        "Population": "data/risk1_population_RCP45_CLMcom_CCLM_202140.png",
+        "Roads": "data/risk2_roads_RCP45_CLMcom_CCLM_202140.png"
+      }
+    };
+
+    var groupedOverlaysHistorical = {}, groupedOverlaysRCP45 = {};
+    Object.keys(riskLayers).forEach(function(category) {
+      if (category.includes("1991 - 2010")) {
+        groupedOverlaysHistorical[category] = {};
+        Object.keys(riskLayers[category]).forEach(function(type) {
+          groupedOverlaysHistorical[category][type] = createOverlay(riskLayers[category][type]);
+        });
+      } else if (category.includes("2021 - 2040")) {
+        groupedOverlaysRCP45[category] = {};
+        Object.keys(riskLayers[category]).forEach(function(type) {
+          groupedOverlaysRCP45[category][type] = createOverlay(riskLayers[category][type]);
+        });
+      }
+    });
+
+    // Pridanie grouped layer control
+    L.control.groupedLayers(baseLayers1, groupedOverlaysHistorical).addTo(map1);
+    L.control.groupedLayers(baseLayers2, groupedOverlaysRCP45).addTo(map2);
+
+    // --- Definícia overlay premenných ---
+    // Hazard vrstvy - CHELSA a ECLIPS
+    var historicalHazardOverlay_CHELSA = Object.values(groupedOverlaysHistorical["HAZARD 1991 - 2010"])[0];
+    var historicalHazardOverlay_ECLIPS  = Object.values(groupedOverlaysHistorical["HAZARD 1991 - 2010"])[1];
+    var rcp45HazardOverlay_CHELSA = Object.values(groupedOverlaysRCP45["HAZARD RCP 4.5 2021 - 2040"])[0];
+    var rcp45HazardOverlay_ECLIPS  = Object.values(groupedOverlaysRCP45["HAZARD RCP 4.5 2021 - 2040"])[1];
+
+    // Risk vrstvy CHELSA
+    var historicalEconomicalOverlay_CHELSA = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 CHELSA"])[0];
+    var historicalEcologicalOverlay_CHELSA = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 CHELSA"])[1];
+    var historicalPopulationOverlay_CHELSA = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 CHELSA"])[2];
+    var historicalRoadsOverlay_CHELSA = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 CHELSA"])[3];
+    var rcp45EconomicalOverlay_CHELSA = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 CHELSA"])[0];
+    var rcp45EcologicalOverlay_CHELSA = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 CHELSA"])[1];
+    var rcp45PopulationOverlay_CHELSA = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 CHELSA"])[2];
+    var rcp45RoadsOverlay_CHELSA = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 CHELSA"])[3];
+
+    // Risk vrstvy ECLIPS
+    var historicalEconomicalOverlay_ECLIPS = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 ECLIPS"])[0];
+    var historicalEcologicalOverlay_ECLIPS = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 ECLIPS"])[1];
+    var historicalPopulationOverlay_ECLIPS = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 ECLIPS"])[2];
+    var historicalRoadsOverlay_ECLIPS = Object.values(groupedOverlaysHistorical["RISK 1991 - 2010 ECLIPS"])[3];
+    var rcp45EconomicalOverlay_ECLIPS = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 ECLIPS"])[0];
+    var rcp45EcologicalOverlay_ECLIPS = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 ECLIPS"])[1];
+    var rcp45PopulationOverlay_ECLIPS = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 ECLIPS"])[2];
+    var rcp45RoadsOverlay_ECLIPS = Object.values(groupedOverlaysRCP45["RISK 2021 - 2040 RCP 4.5 ECLIPS"])[3];
+
+    // Pridanie predvolenej vrstvy – predvolene zobrazíme Ekonomickú vrstvu (CHELSA)
+    historicalEconomicalOverlay_CHELSA.addTo(map1);
+    rcp45EconomicalOverlay_CHELSA.addTo(map2);
+
+    // --- Legendové dáta ---
+    var hazardLegendData = [
+      { label: "no data", color: "#ffffff" },
+      { label: "very low", color: "#0bd1f8" },
+      { label: "low", color: "#1ff238" },
+      { label: "medium", color: "#f3db02" },
+      { label: "high", color: "#ea8d1b" },
+      { label: "very high", color: "#dc1721" },
+      { label: "extreme", color: "#ff00ff" }
+    ];
+    var riskLegendData = [
+      { label: "low", color: "#abdda4" },
+      { label: "moderate low", color: "#ffffbf" },
+      { label: "moderate high", color: "#fdae61" },
+      { label: "high", color: "#d7191c" }
+    ];
+
+    // --- Vytvorenie legiend ---
+    // Hazard legendy
+    var hazardLegendHistorical_CHELSA = createLegendControl("Hazard 1991-2010 CHELSA", hazardLegendData, 'bottomleft');
+    var hazardLegendHistorical_ECLIPS  = createLegendControl("Hazard 1991-2010 ECLIPS", hazardLegendData, 'bottomleft');
+    var hazardLegendRCP45_CHELSA = createLegendControl("Hazard 2021 - 2040 RCP4.5 CHELSA", hazardLegendData, 'bottomleft');
+    var hazardLegendRCP45_ECLIPS  = createLegendControl("Hazard 2021 - 2040 RCP4.5 ECLIPS", hazardLegendData, 'bottomleft');
+
+    // Risk legendy pre CHELSA
+    var riskLegendHistorical_CHELSA = createLegendControl("Economical risk 1991-2010 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendRCP45_CHELSA    = createLegendControl("Economical risk 2021 - 2040 RCP4.5 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendEcologicalHistorical_CHELSA = createLegendControl("Ecological risk 1991-2010 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendEcologicalRCP45_CHELSA    = createLegendControl("Ecological risk 2021 - 2040 RCP4.5 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendPopulationHistorical_CHELSA = createLegendControl("Population risk 1991-2010 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendPopulationRCP45_CHELSA    = createLegendControl("Population risk 2021 - 2040 RCP4.5 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendRoadsHistorical_CHELSA = createLegendControl("Roads risk 1991-2010 CHELSA", riskLegendData, 'bottomleft');
+    var riskLegendRoadsRCP45_CHELSA    = createLegendControl("Roads risk 2021 - 2040 RCP4.5 CHELSA", riskLegendData, 'bottomleft');
+
+    // Risk legendy pre ECLIPS
+    var riskLegendHistorical_ECLIPS = createLegendControl("Economical risk 1991-2010 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendRCP45_ECLIPS    = createLegendControl("Economical risk 2021 - 2040 RCP4.5 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendEcologicalHistorical_ECLIPS = createLegendControl("Ecological risk 1991-2010 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendEcologicalRCP45_ECLIPS    = createLegendControl("Ecological risk 2021 - 2040 RCP4.5 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendPopulationHistorical_ECLIPS = createLegendControl("Population risk 1991-2010 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendPopulationRCP45_ECLIPS    = createLegendControl("Population risk 2021 - 2040 RCP4.5 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendRoadsHistorical_ECLIPS = createLegendControl("Roads risk 1991-2010 ECLIPS", riskLegendData, 'bottomleft');
+    var riskLegendRoadsRCP45_ECLIPS    = createLegendControl("Roads risk 2021 - 2040 RCP4.5 ECLIPS", riskLegendData, 'bottomleft');
+
+    // Pridanie predvolených legiend – keďže predvolená vrstva je ekonomická (CHELSA)
+    riskLegendHistorical_CHELSA.addTo(map1);
+    riskLegendRCP45_CHELSA.addTo(map2);
+
+    // --- Mapovanie overlay vrstiev na legendy ---
+    var map1LegendMapping = [
+      { overlay: historicalHazardOverlay_CHELSA, legend: hazardLegendHistorical_CHELSA },
+      { overlay: historicalHazardOverlay_ECLIPS,  legend: hazardLegendHistorical_ECLIPS },
+      { overlay: historicalEconomicalOverlay_CHELSA, legend: riskLegendHistorical_CHELSA },
+      { overlay: historicalEcologicalOverlay_CHELSA,   legend: riskLegendEcologicalHistorical_CHELSA },
+      { overlay: historicalPopulationOverlay_CHELSA,   legend: riskLegendPopulationHistorical_CHELSA },
+      { overlay: historicalRoadsOverlay_CHELSA,        legend: riskLegendRoadsHistorical_CHELSA },
+      { overlay: historicalEconomicalOverlay_ECLIPS,   legend: riskLegendHistorical_ECLIPS },
+      { overlay: historicalEcologicalOverlay_ECLIPS,     legend: riskLegendEcologicalHistorical_ECLIPS },
+      { overlay: historicalPopulationOverlay_ECLIPS,     legend: riskLegendPopulationHistorical_ECLIPS },
+      { overlay: historicalRoadsOverlay_ECLIPS,          legend: riskLegendRoadsHistorical_ECLIPS }
+    ];
+
+    var map2LegendMapping = [
+      { overlay: rcp45EconomicalOverlay_CHELSA, legend: riskLegendRCP45_CHELSA },
+      { overlay: rcp45HazardOverlay_CHELSA,       legend: hazardLegendRCP45_CHELSA },
+      { overlay: rcp45HazardOverlay_ECLIPS,        legend: hazardLegendRCP45_ECLIPS },
+      { overlay: rcp45EcologicalOverlay_CHELSA,    legend: riskLegendEcologicalRCP45_CHELSA },
+      { overlay: rcp45PopulationOverlay_CHELSA,    legend: riskLegendPopulationRCP45_CHELSA },
+      { overlay: rcp45RoadsOverlay_CHELSA,         legend: riskLegendRoadsRCP45_CHELSA },
+      { overlay: rcp45EconomicalOverlay_ECLIPS,    legend: riskLegendRCP45_ECLIPS },
+      { overlay: rcp45EcologicalOverlay_ECLIPS,      legend: riskLegendEcologicalRCP45_ECLIPS },
+      { overlay: rcp45PopulationOverlay_ECLIPS,      legend: riskLegendPopulationRCP45_ECLIPS },
+      { overlay: rcp45RoadsOverlay_ECLIPS,           legend: riskLegendRoadsRCP45_ECLIPS }
+    ];
+
+    // --- Dynamické pridávanie a odstraňovanie legiend ---
+    map1.on('overlayadd', function(e) {
+      map1LegendMapping.forEach(function(item) {
+        if (e.layer === item.overlay) {
+          item.legend.addTo(map1);
+        }
+      });
+    });
+    map1.on('overlayremove', function(e) {
+      map1LegendMapping.forEach(function(item) {
+        if (e.layer === item.overlay) {
+          map1.removeControl(item.legend);
+        }
+      });
+    });
+
+    map2.on('overlayadd', function(e) {
+      map2LegendMapping.forEach(function(item) {
+        if (e.layer === item.overlay) {
+          item.legend.addTo(map2);
+        }
+      });
+    });
+    map2.on('overlayremove', function(e) {
+      map2LegendMapping.forEach(function(item) {
+        if (e.layer === item.overlay) {
+          map2.removeControl(item.legend);
+        }
+      });
+    });
+
+    // --- Synchronizácia máp ---
+    if (map1.sync && map2.sync) {
+      map1.sync(map2);
+      map2.sync(map1);
+    }
+  </script>
+</body>
+</html>
