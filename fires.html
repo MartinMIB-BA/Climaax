@@ -125,6 +125,7 @@
     L.control.groupedLayers(baseLayers1, groupedOverlaysHistorical).addTo(map1);
     L.control.groupedLayers(baseLayers2, groupedOverlaysRCP45).addTo(map2);
 
+    // Zakázanie dvojitého kliknutia v mobilnej app
     var layersControls = document.querySelectorAll('.leaflet-control-layers');
     layersControls.forEach(function(control) {
       L.DomEvent.disableClickPropagation(control);
