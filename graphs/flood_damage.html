@@ -44,37 +44,16 @@
                     {"displayModeBar": false, "responsive": true}
                 ).then(function(){
                     (function () {
-                        // 1) CSS POISTKA: Priehľadnosť pre StoryMaps/Experience Builder
                         var css = `
                             html, body { background: transparent !important; margin: 0 !important; }
                             .plot-container, .svg-container, .js-plotly-plot { background: transparent !important; }
                             .main-svg, .bg { fill: rgba(0,0,0,0) !important; }
-                            .annotation .bg, .annotation .border { fill: rgba(0,0,0,0) !important; stroke: rgba(0,0,0,0) !important; }
+                            .annotation .bg { fill: rgba(0,0,0,0) !important; }
                         `;
-                        var id = "plotly-transparent-style";
-                        if (!document.getElementById(id)) {
-                            var style = document.createElement("style");
-                            style.id = id;
-                            style.type = "text/css";
-                            style.appendChild(document.createTextNode(css));
-                            document.head.appendChild(style);
-                        }
-
-                        // 2) JS POISTKA: Zakomentovaná - odkomentuj ak uvidíš biele boxy pod grafom
-                        /*
-                        function killAnnotationBg() {
-                            var nodes = document.querySelectorAll('.annotation .bg, .annotation .border');
-                            nodes.forEach(function(n){
-                                n.style.fill = 'rgba(0,0,0,0)';
-                                n.style.stroke = 'rgba(0,0,0,0)';
-                            });
-                        }
-                        killAnnotationBg();
-                        var gd = document.querySelector('.js-plotly-plot');
-                        if (gd && gd.on) {
-                            gd.on('plotly_afterplot', killAnnotationBg);
-                        }
-                        */
+                        var style = document.createElement("style");
+                        style.type = "text/css";
+                        style.appendChild(document.createTextNode(css));
+                        document.head.appendChild(style);
                     })();
                 });
             }
